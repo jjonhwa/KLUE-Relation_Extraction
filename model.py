@@ -50,86 +50,10 @@ class IBModel(nn.Module):
             outputs = (loss,) + outputs
         return outputs
 
-
-class StartTokenWithCLSModel(torch.nn.Module):
-    """
-    IBModel에서 Start Token에 대한 Embedding 뿐만 아니라 CLS Token에 대한 Embedding까지
-    더해서 classifier에 feeding하는 모델
-    """
-    def __init__(self):
-        super().__init__()
-        self.MODEL_NAME = "klue/roberta-large"
-        self.bert_model = AutoModel.from_pretrained(self.MODEL_NAME)
-        self.hidden_size = 1024
-        self.num_labels = 30
-        self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
-
-        special_tokens_dict = {
-            "additional_special_tokens": [
-                "[SUB:ORG]",
-                "[SUB:PER]",
-                "[/SUB]",
-                "[OBJ:DAT]",
-                "[OBJ:LOC]",
-                "[OBJ:NOH]",
-                "[OBJ:ORG]",
-                "[OBJ:PER]",
-                "[OBJ:POH]",
-                "[/OBJ]",
-            ]
-        }
-
-        num_added_tokens = self.tokenizer.add_special_tokens(special_tokens_dict)
-        print("num_added_tokens:", num_added_tokens)
-
-        self.bert_model.resize_token_embeddings(len(self.tokenizer))
-
-        self.classifier = torch.nn.Sequential(
-            torch.nn.Linear(3 * self.hidden_size, self.hidden_size),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.Linear(self.hidden_size, self.num_labels),
-        )
-
-    def forward(self, item):
-        input_ids = item["input_ids"]
-        # token_type_ids = item["token_type_ids"] # BERT Model을 사용할 경우 주석 취소
-        attention_mask = item["attention_mask"]
-        sub_token_index = item["sub_token_index"]
-        obj_token_index = item["obj_token_index"]
-        out = self.bert_model(
-            input_ids=input_ids,
-            # token_type_ids=token_type_ids, # BERT Model을 사용할 경우 주석 취소        
-            attention_mask=attention_mask,
-        )
-        h = out.last_hidden_state
-        batch_size = h.shape[0]
-
-        stack = []
-
-        for i in range(batch_size):
-            stack.append(
-                torch.cat([h[i][0], h[i][sub_token_index[i]], h[i][obj_token_index[i]]])
-            )
-
-        stack = torch.stack(stack)
-
-        out = self.classifier(stack)
-        return out
-
-
 class FCLayer(nn.Module):
     """
     R-BERT: https://github.com/monologg/R-BERT/blob/master/model.py
-    
-    RBERT의 경우, 
-      CLS hidden state vector
-      Entity1의 각 Token에 대한 Average hidden state vector
-      Entity2의 각 Token에 대한 Average hidden state vector
-     
-    위의 3가지의 hidden state vector를 Fully Connected Layer를 거친다.
-    또한, 그렇게 출력된 3개의 vector를 concatenate한 후 이를 다시 Fully Connected Layer 넣어주게 된다.
-    
-    이러한 반복의 과정을 처리하기 위하여 FCLayer를 따로 정의해주었다.
+    R-BERT에서 반복적으로 사용되는 Fully Connected Layer를 정의한다.
     """
 
     def __init__(self, input_dim, output_dim, dropout_rate=0.0, use_activation=True):
@@ -147,7 +71,20 @@ class FCLayer(nn.Module):
 
 
 class RBERT(nn.Module):
-    """R-BERT: https://github.com/monologg/R-BERT/blob/master/model.py"""
+    """
+    R-BERT: https://github.com/monologg/R-BERT/blob/master/model.py
+    
+    R-BERT:
+        CLS hidden state vector
+        Entity1의 각 Token에 대한 Average hidden state vector
+        Entity2의 각 Token에 대한 Average hidden state vector
+        
+        각 hidden state vector는 Fully-Connected Layer + Activation을 통과한다.
+        
+        통과한 3개의 Vector를 Concatenate하여 하나의 Vector로 만들어주고 다시 Fully-Connected Layer를 통과한다.
+        
+        그 후, Softmax를 통과하여 최종 예측을 진행
+    """
 
     def __init__(
         self,
@@ -167,16 +104,22 @@ class RBERT(nn.Module):
         self.num_labels = num_labels
         config.num_labels = num_labels
 
-        # add special tokens
+        # 사전 Dataset에 Typed Entity Marker를 통해 추가된 Special Token을 Tokenizer에 추가한다.
         self.special_tokens_dict = special_tokens_dict
         self.backbone_model.resize_token_embeddings(len(self.tokenizer))
 
+        # CLS Token의 Hidden state vector가 통과할 FCLayer 정의
         self.cls_fc_layer = FCLayer(
             config.hidden_size, config.hidden_size, self.dropout_rate
         )
+        
+        # Entity1, Entity2의 각 Token에 대한 Average Hidden state vector가 통과할 FCLayer 정의
+        # Entity1과 Entity2에서 사용하는 FCLayer는 서로 weight를 공유한다.
         self.entity_fc_layer = FCLayer(
             config.hidden_size, config.hidden_size, self.dropout_rate
         )
+        
+        # 최종, CLS, Entity1, Entity2가 Concatenate된 vector가 통과할 FCLayer 정의
         self.label_classifier = FCLayer(
             config.hidden_size * 3,
             self.num_labels,
@@ -220,40 +163,15 @@ class RBERT(nn.Module):
 
         # hidden state's average in between entities
         # print(sequence_output.shape, subject_mask.shape)
-        e1_h = self.entity_average(
-            sequence_output, subject_mask
-        )  # token in between subject entities ->
-        e2_h = self.entity_average(
-            sequence_output, object_mask
-        )  # token in between object entities
+        e1_h = self.entity_average(sequence_output, subject_mask)  # token in between subject entities ->
+        e2_h = self.entity_average(sequence_output, object_mask)  # token in between object entities
 
         # Dropout -> tanh -> fc_layer (Share FC layer for e1 and e2)
-        pooled_output = self.cls_fc_layer(
-            pooled_output
-        )  # [CLS] token -> hidden state | green on diagram
-        e1_h = self.entity_fc_layer(
-            e1_h
-        )  # subject entity's fully connected layer | yellow on diagram
-        e2_h = self.entity_fc_layer(
-            e2_h
-        )  # object entity's fully connected layer | red on diagram
+        pooled_output = self.cls_fc_layer(pooled_output)  # [CLS] token -> hidden state | green on diagram
+        e1_h = self.entity_fc_layer(e1_h)  # subject entity's fully connected layer | yellow on diagram
+        e2_h = self.entity_fc_layer(e2_h)  # object entity's fully connected layer | red on diagram
 
         # Concat -> fc_layer / [CLS], subject_average, object_average
         concat_h = torch.cat([pooled_output, e1_h, e2_h], dim=-1)
         logits = self.label_classifier(concat_h)
         return logits
-
-        # WILL USE FOCAL LOSS INSTEAD OF MSELoss and CrossEntropyLoss
-        # outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
-        # # Softmax
-        # if labels is not None:
-        #     if self.num_labels == 1:
-        #         loss_fct = nn.MSELoss()
-        #         loss = loss_fct(logits.view(-1), labels.view(-1))
-        #     else:
-        #         loss_fct = nn.CrossEntropyLoss()
-        #         loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-
-        #     outputs = (loss,) + outputs
-
-        #  return outputs  # (loss), logits, (hidden_states), (attentions)
