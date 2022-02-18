@@ -43,7 +43,7 @@ relation: 단체:별칭 (org:alternate_names)
 pip install -r requirements.txt
 
 # Train
-python train.py --rbert
+python train.py --mode 'rbert'
 
 # Inference
 python inference.py
