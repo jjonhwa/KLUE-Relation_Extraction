@@ -38,6 +38,17 @@ relation: 단체:별칭 (org:alternate_names)
 ### Hardware
 - `GPU: Tesla V100 32GB`
 
+## 실행
+```
+pip install -r requirements.txt
+
+# Train
+python train.py --rbert
+
+# Inference
+python inference.py
+```
+
 ## Code
 ```
 +- data (.gitignore) => Entity.ipynb를 활용하여 Typed Entity Marker Dataset 생성 
