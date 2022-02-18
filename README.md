@@ -46,7 +46,7 @@ pip install -r requirements.txt
 python train.py --mode 'rbert'
 
 # Inference
-python inference.py
+python inference.py --mode 'rbert'
 ```
 
 ## Code
