@@ -63,11 +63,11 @@ relation: 단체:별칭 (org:alternate_names)
 - Typed Entity Marker을 활용한 input text preprocessing
   - Typed Entity Marker: [SUB-ORGANIZATION]아메리칸 리그[/SUB-ORGANIZATION]가 출범한 [OBJ-DATE]1901년[/OBJ-DATE] 당시 .426의 타율을 기록하였다.
   - Typed Entity Marker (punct): @*기관*아메리칸 리그@가 출범한 &^날짜^1901년& 당시 .426의 타율을 기록하였다.
-- RBERT [Paper Review 참고](https://jjonhwa.github.io/booststudy/2022/02/13/booststudy-paper-RBERT/#3-methodology)
+- RBERT [(Paper Review 참고)](https://jjonhwa.github.io/booststudy/2022/02/13/booststudy-paper-RBERT/#3-methodology)
   - CLS hidden state vector, Entity1의 각 Token에 대한 Average hidden state vector, Entity2의 각 Token에 대한 Average hidden state vector
   - 각 hidden state vector는 Fully-Connected Layer + Activation을 통과
   - 통과한 3개의 Vector를 Concatenate하여 하나의 vector로 만든 후 최종 분류 layer 통과
-- An Improved Baseline for Sentence-level Relation Extraction [Paper Review 참고](https://jjonhwa.github.io/booststudy/2022/02/17/booststudy-paper-Improved_Baseline/#3-method)
+- An Improved Baseline for Sentence-level Relation Extraction [(Paper Review 참고)](https://jjonhwa.github.io/booststudy/2022/02/17/booststudy-paper-Improved_Baseline/#3-method)
   - Entity1의 start token에 대한 embedding vector, Entity2의 start token에 대한 embedding vector
   - 두 vector를 concatenate하여 하나의 vector를 만든 후 최종 분류 layer 통과 
 - Out of Fold Ensemble
@@ -75,8 +75,9 @@ relation: 단체:별칭 (org:alternate_names)
   - Baseline + RBERT + Improved_Baseline Ensemble 
 
 ## 결과
+
 ||Custom Baseline|RBERT|Improved_Baseline|Ensemble public|Ensemble private|
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 |F1_Score|73.349|74.530|73.277|75.218|73.865|
 |AUPRC|80.332|79.877|76.317|81.480|83.216|
 
