@@ -31,7 +31,6 @@ from transformers.optimization import get_linear_schedule_with_warmup
 
 # import third party modules
 import yaml
-import argparse
 from tqdm import tqdm
 from easydict import EasyDict
 from adamp import AdamP
