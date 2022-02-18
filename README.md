@@ -21,6 +21,7 @@ relation: 단체:별칭 (org:alternate_names)
 
 <details>
     <summary><b>자세히</b></summary>
+    
 - Example (data/train.csv)
   - `id`, `sentence`, `subject_entity`, `object_entity`, `label`, `source`로 구성
   - `sentence`: 조지 해리슨이 쓰고 비틀즈가 1969년 앨범 《Abbey Road》에 담은 노래다.
