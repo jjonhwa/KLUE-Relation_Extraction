@@ -4,15 +4,18 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import numpy as np
 import pandas as pd
 
-from tqdm import tqdm
-from dataset import *
-from torch.utils.data import DataLoader, Dataset, Subset
-from utils.metrics import *
-import torch.nn.functional as F
-from dataset import *
 import os
-from models import *
 import yaml
+import argparse
+
+from tqdm import tqdm
+from torch.utils.data import DataLoader, Dataset, Subset
+import torch.nn.functional as F
+
+from dataset import *
+from utils.metrics import *
+from models import *
+from dataset import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 DATA_CFG = {}
@@ -262,6 +265,16 @@ def inference_concat():
         "./prediction/submission_concat.csv", index=False
     )  # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
 
-
-def main():
-    inference_ib()
+if __name__ == "__main__":    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mode', type=str, default='custom', help='custom(custom concat) or rbert or ib(Improved Baseline)')
+    args = parser.parse_args()
+    
+    if args.mode == 'custom':
+        inference_concat()
+    elif args.mode == 'rbert':
+        inference_rbert()
+    elif args.mode == 'ib':
+        inference_ib()
+    else:
+        raise ValueError("Inappropriate values have been received.")
