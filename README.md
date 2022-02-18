@@ -26,7 +26,7 @@ relation: 단체:별칭 (org:alternate_names)
   - `id`, `sentence`, `subject_entity`, `object_entity`, `label`, `source`로 구성
   - `sentence`: 조지 해리슨이 쓰고 비틀즈가 1969년 앨범 《Abbey Road》에 담은 노래다.
   - `subject_entity`: {'word': '조지 해리슨', 'start_idx': 13, 'end_idx': 18, 'type': 'PER'}
-  - 'object_entity`: {'word': '비틀즈', 'start_idx': 24, 'end_idx': 26, 'type': 'ORG'}
+  - `object_entity`: {'word': '비틀즈', 'start_idx': 24, 'end_idx': 26, 'type': 'ORG'}
   - `label`: no_relation
   - `source`: wikipedia
 
