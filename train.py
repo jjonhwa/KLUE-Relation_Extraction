@@ -31,6 +31,7 @@ from transformers.optimization import get_linear_schedule_with_warmup
 
 # import third party modules
 import yaml
+import argparse
 from tqdm import tqdm
 from easydict import EasyDict
 from adamp import AdamP
@@ -449,3 +450,19 @@ def train_rbert():
         model.cpu()
         del model
         torch.cuda.empty_cache()
+        
+if __name__ == "__main__":    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mode', type=str, default='custom', help='custom(custom concat) or rbert or ib(Improved Baseline)')
+    args = parser.parse_args()
+    
+    if args.mode == 'custom':
+        train_concat()
+    elif args.mode == 'rbert':
+        train_rbert()
+    elif args.mode == 'ib':
+        train_ib()
+    else:
+        raise ValueError("Inappropriate values have been received.")
+    
+    
