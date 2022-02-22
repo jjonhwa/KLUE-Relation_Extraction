@@ -1,5 +1,5 @@
 # Relation_Extraction
-🏅 Top 5% in Relation Extraction Task in Naver BoostCamp AI Tech
+🥉 Top 3 in Relation Extraction Task in Naver BoostCamp AI Tech
 
 ## 대회 설명
 - 문장 속에서 단어간의 관계성을 예측한다.
