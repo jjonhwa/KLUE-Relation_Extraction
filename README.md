@@ -72,8 +72,8 @@ python inference.py --mode 'rbert'
 
 ## Core Strategy
 - **Typed Entity Marker을 활용한 input text preprocessing**
-  - Typed Entity Marker: [SUB-ORGANIZATION]아메리칸 리그[/SUB-ORGANIZATION]가 출범한 [OBJ-DATE]1901년[/OBJ-DATE] 당시 .426의 타율을 기록하였다.
-  - Typed Entity Marker (punct): @*기관*아메리칸 리그@가 출범한 &^날짜^1901년& 당시 .426의 타율을 기록하였다.
+  - Typed Entity Marker: `[SUB-ORGANIZATION]아메리칸 리그[/SUB-ORGANIZATION]가 출범한 [OBJ-DATE]1901년[/OBJ-DATE] 당시 .426의 타율을 기록하였다.`
+  - Typed Entity Marker (punct): `@*기관*아메리칸 리그@가 출범한 &^날짜^1901년& 당시 .426의 타율을 기록하였다.`
 - **RBERT** [(Paper Review 참고)](https://jjonhwa.github.io/booststudy/2022/02/13/booststudy-paper-RBERT/#3-methodology)
   - CLS hidden state vector, Entity1의 각 Token에 대한 Average hidden state vector, Entity2의 각 Token에 대한 Average hidden state vector
   - 각 hidden state vector를 Fully-Connected Layer + Activation 통과
