@@ -82,7 +82,7 @@ python inference.py --mode 'rbert'
   - Entity1의 start token에 대한 embedding vector, Entity2의 start token에 대한 embedding vector
   - 두 vector를 concatenate하여 하나의 vector를 만든 후 최종 분류 layer 통과 
 - **Out of Fold Ensemble**
-  - Startified KFold를 활용한 Ensemble 진행
+  - Stratified KFold를 활용한 Ensemble 진행
   - Baseline + RBERT + Improved_Baseline Ensemble 
 
 ## 결과
